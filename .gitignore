@@ -1,75 +1,44 @@
-# .NET Core build folders
+# Build output directories
 bin/
 obj/
 
-# Visual Studio files
+# IDE and editor files
 .vs/
+.vscode/
+.idea/
 *.user
 *.userosscache
 *.sln.docstates
 *.userprefs
 
-# Visual Studio Code files
-.vscode/
-*.code-workspace
-
-# Rider files
-.idea/
-*.sln.iml
+# Dependencies
+**/[Pp]ackages/*
 
 # Build results
 [Dd]ebug/
-[Dd]ebugPublic/
 [Rr]elease/
-[Rr]eleases/
 x64/
 x86/
-build/
-bld/
 [Bb]in/
 [Oo]bj/
 [Oo]ut/
-msbuild.log
-msbuild.err
-msbuild.wrn
 
-# NuGet Packages
-*.nupkg
-# NuGet Symbol Packages
-*.snupkg
-# The packages folder can be ignored because of Package Restore
-**/[Pp]ackages/*
-# except build/, which is used as an MSBuild target.
-!**/[Pp]ackages/build/
-# Uncomment if necessary however generally it will be regenerated when needed
-#!**/[Pp]ackages/repositories.config
-# NuGet v3's project.json files produces more ignorable files
-*.nuget.props
-*.nuget.targets
+# Local settings and environment files
+appsettings.Development.json
+appsettings.json
+.env
+.env.*
 
-# Visual Studio cache files
-# files ending in .cache can be ignored
-*.[Cc]ache
-# but keep track of directories ending in .cache
-!?*.[Cc]ache/
-
-# SQL Server files
-*.mdf
-*.ldf
-*.ndf
-
-# SQLite database files
+# Database files
 *.db
 *.sqlite
 *.sqlite3
 
-# Local development settings
-appsettings.Development.json
-appsettings.json
-
-# Logs
+# Logs and temporary files
 *.log
 logs/
+tmp/
+temp/
 
 # OS generated files
 .DS_Store
@@ -77,36 +46,8 @@ logs/
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
 Thumbs.db
 
-# Test Results
-TestResults/
-[Tt]est[Rr]esult*/
-*.trx
-
-# Code coverage results
-*.coverage
-*.coveragexml
-coverage/
-
-# Temporary files
-*.tmp
-*.temp
-*.swp
-*~
-
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# macOS system files
-.AppleDouble
-.LSOverride
-
-# Temporary files
-*.swp
-*~ 
+# Generated artifacts
+docs/
+invoice-system.zip 
