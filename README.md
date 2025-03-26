@@ -45,7 +45,7 @@ invoice/
 2. **Application Configuration**
    - Copy `appsettings.json.example` to `appsettings.json`
    - Update the connection string to match your database settings
-   - Default configuration uses SQLite for easy development setup
+   - Default configuration uses PostgreSQL for easy development setup
 
 3. **Build and Run**
    ```bash
@@ -106,17 +106,7 @@ The `database design` directory contains documentation only:
 > **Note**: Database creation and seeding is handled automatically by the application.
 > The SQL scripts are provided as documentation only.
 
-## Development Setup Tips
 
-1. **Quick Start with SQLite**
-   - The default configuration uses SQLite
-   - Database is created automatically on first run
-   - Sample data is populated automatically by DataSeedingService
-
-2. **Using Other Databases**
-   - Update connection string in `appsettings.json`
-   - Application will create and seed the database automatically
-   - No additional setup required
 
 ## Support
 
