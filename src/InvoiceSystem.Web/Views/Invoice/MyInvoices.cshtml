@@ -1,0 +1,133 @@
+@using InvoiceSystem.Domain.Enums
+@model IEnumerable<InvoiceSystem.Domain.DTOs.InvoiceDto>
+@{
+    ViewData["Title"] = "My Invoices";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Invoices</h2>
+        <a asp-controller="Invoice" asp-action="Create" asp-route-source="MyInvoices" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Invoice
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Invoice Number</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Days Worked</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle"></i> You haven't created any invoices yet.
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var invoice in Model)
+                    {
+                        <tr>
+                            <td>@invoice.InvoiceNumber</td>
+                            <td>@invoice.StartDate.ToShortDateString()</td>
+                            <td>@invoice.EndDate.ToShortDateString()</td>
+                            <td>@invoice.DaysWorked</td>
+                            <td>@invoice.TotalAmount.ToString("C")</td>
+                            <td>
+                                <span class="badge bg-@(invoice.Status == InvoiceStatus.Draft ? "warning" : 
+                                                    invoice.Status == InvoiceStatus.Submitted ? "info" :
+                                                    invoice.Status == InvoiceStatus.Approved ? "success" :
+                                                    invoice.Status == InvoiceStatus.Rejected ? "danger" : "secondary")">
+                                    @invoice.Status
+                                </span>
+                            </td>
+                            <td>@invoice.CreatedAt.ToShortDateString()</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a asp-action="Details" asp-route-id="@invoice.Id" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if (invoice.Status == InvoiceStatus.Draft)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@invoice.Id" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@invoice.Id" method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this invoice?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this invoice?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteInvoiceId" name="id" value="" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(invoiceId) {
+            document.getElementById('deleteInvoiceId').value = invoiceId;
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+} 

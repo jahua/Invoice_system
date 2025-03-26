@@ -1,0 +1,115 @@
+@model IEnumerable<InvoiceSystem.Domain.DTOs.InvoiceDto>
+@using InvoiceSystem.Domain.Enums
+
+@{
+    ViewData["Title"] = "My Invoices";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Invoices</h2>
+        <a href="@Url.Action("Create", "Invoice")" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Invoice
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            You don't have any invoices yet. Click the "Create New Invoice" button to get started.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Invoice Number</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Days Worked</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in Model)
+                    {
+                        <tr>
+                            <td>@invoice.InvoiceNumber</td>
+                            <td>@invoice.StartDate.ToShortDateString()</td>
+                            <td>@invoice.EndDate.ToShortDateString()</td>
+                            <td>@invoice.DaysWorked</td>
+                            <td>@invoice.TotalAmount.ToString("C")</td>
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(invoice.Status)">
+                                    @invoice.Status
+                                </span>
+                            </td>
+                            <td>@invoice.CreatedAt.ToShortDateString()</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="@Url.Action("Details", "Invoice", new { id = invoice.Id })" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if (invoice.Status == InvoiceStatus.Draft)
+                                    {
+                                        <a href="@Url.Action("Edit", "Invoice", new { id = invoice.Id })" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-danger delete-invoice" 
+                                                data-invoice-id="@invoice.Id">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.delete-invoice').click(function() {
+                var invoiceId = $(this).data('invoice-id');
+                if (confirm('Are you sure you want to delete this invoice?')) {
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Invoice")/' + invoiceId,
+                        type: 'POST',
+                        success: function() {
+                            location.reload();
+                        },
+                        error: function() {
+                            alert('Failed to delete the invoice. Please try again.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
+
+@functions {
+    string GetStatusBadgeClass(InvoiceStatus status)
+    {
+        return status switch
+        {
+            InvoiceStatus.Draft => "bg-warning",
+            InvoiceStatus.Submitted => "bg-info",
+            InvoiceStatus.Approved => "bg-success",
+            InvoiceStatus.Rejected => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+} 

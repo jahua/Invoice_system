@@ -1,0 +1,48 @@
+@model IEnumerable<InvoiceSystem.Domain.DTOs.ContractDto>
+@{
+    ViewData["Title"] = "Contracts";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Contracts</h2>
+        <a asp-action="Create" class="btn btn-primary">Create New Contract</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Contract Type</th>
+                    <th>Pay Grade</th>
+                    <th>Daily Rate</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var contract in Model)
+                {
+                    <tr>
+                        <td>@contract.Employee.FullName</td>
+                        <td>@contract.ContractType</td>
+                        <td>@contract.PayGrade</td>
+                        <td>@contract.DailyRate.ToString("C")</td>
+                        <td>@contract.StartDate.ToShortDateString()</td>
+                        <td>@contract.EndDate.ToShortDateString()</td>
+                        <td>
+                            <div class="btn-group">
+                                <a asp-action="Edit" asp-route-id="@contract.Id" class="btn btn-sm btn-info">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@contract.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this contract?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div> 

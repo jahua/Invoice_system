@@ -1,0 +1,129 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">Login</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Login" asp-controller="Account">
+                        @if (!string.IsNullOrEmpty(ViewData["ReturnUrl"]?.ToString()))
+                        {
+                            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+                        }
+                        
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@modelError.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="demo-accounts">
+                        <h5 class="text-center mb-3">
+                            <i class="bi bi-info-circle"></i> Demo Accounts
+                        </h5>
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong><i class="bi bi-person-badge"></i> Manager Account</strong>
+                                    <span class="badge bg-primary">InvoiceManager</span>
+                                </div>
+                                <div class="ms-4">
+                                    <div><small>Username: <code>manager1</code></small></div>
+                                    <div><small>Password: <code>password123</code></small></div>
+                                </div>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong><i class="bi bi-person"></i> Employee Account</strong>
+                                    <span class="badge bg-success">Employee</span>
+                                </div>
+                                <div class="ms-4">
+                                    <div><small>Username: <code>employee1</code></small></div>
+                                    <div><small>Password: <code>password123</code></small></div>
+                                </div>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="small text-muted text-center">
+                                    Additional employee accounts: <code>employee2</code>, <code>employee3</code><br>
+                                    (same password as above)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.demo-accounts code {
+    background-color: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: #d63384;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.card-footer {
+    border-radius: 0 0 15px 15px !important;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    border-color: #dee2e6;
+    box-shadow: none;
+}
+
+.btn-lg {
+    padding: 12px 20px;
+    font-size: 1.1rem;
+}
+</style> 

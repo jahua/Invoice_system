@@ -1,0 +1,250 @@
+@model InvoiceSystem.Domain.DTOs.CreateInvoiceDto
+
+@{
+    ViewData["Title"] = "Create Invoice";
+}
+
+<div class="container mt-4">
+    <h2>Create New Invoice</h2>
+
+    <div class="alert alert-info">
+        <p><i class="bi bi-info-circle"></i> Important Information:</p>
+        <ul>
+            <li>Invoice period must be within the contract period</li>
+            <li>Only full days can be invoiced (no partial days)</li>
+            <li>Days worked must be within the selected date range</li>
+            <li>Total amount will be calculated automatically based on daily rate</li>
+        </ul>
+    </div>
+
+    <form asp-controller="Invoice" asp-action="Create" method="post" id="invoiceForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="source" value="@ViewBag.Source" />
+        <input type="hidden" name="TotalAmount" id="TotalAmount" value="0" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        @if (!ViewBag.IsEmployee)
+        {
+            <div class="form-group">
+                <label asp-for="EmployeeId">Employee</label>
+                <select asp-for="EmployeeId" asp-items="ViewBag.Employees" class="form-control" required>
+                    <option value="">Select Employee</option>
+                </select>
+                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" asp-for="EmployeeId" value="@ViewBag.EmployeeId" />
+        }
+
+        <div class="form-group">
+            <label asp-for="ContractId">Contract</label>
+            <select asp-for="ContractId" asp-items="@(ViewBag.IsEmployee ? ViewBag.Contracts : null)" class="form-control" required>
+                <option value="">Select Contract</option>
+            </select>
+            <span asp-validation-for="ContractId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="StartDate">Start Date</label>
+            <input asp-for="StartDate" type="date" class="form-control" required />
+            <span asp-validation-for="StartDate" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="EndDate">End Date</label>
+            <input asp-for="EndDate" type="date" class="form-control" required />
+            <span asp-validation-for="EndDate" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="DaysWorked">Days Worked</label>
+            <input asp-for="DaysWorked" type="number" class="form-control" required min="1" />
+            <span asp-validation-for="DaysWorked" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label>Total Amount</label>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" id="totalAmountDisplay" class="form-control" readonly />
+            </div>
+            <small class="form-text text-muted">Calculated based on daily rate and days worked</small>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary" id="submitButton">Create Invoice</button>
+            <a asp-action="MyInvoices" class="btn btn-secondary">Back to My Invoices</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            let contractDetails = null;
+            let isLoadingContract = false;
+
+            // Initialize date inputs to today
+            const today = new Date().toISOString().split('T')[0];
+            $('#StartDate').val(today);
+            $('#EndDate').val(today);
+
+            function updateTotalAmount() {
+                if (!contractDetails) {
+                    $('#totalAmountDisplay').val('0.00');
+                    $('#TotalAmount').val('0');
+                    return;
+                }
+                
+                const daysWorked = parseInt($('#DaysWorked').val()) || 0;
+                const dailyRate = contractDetails.dailyRate || 0;
+                const totalAmount = daysWorked * dailyRate;
+                
+                // Update display field with formatted amount
+                $('#totalAmountDisplay').val(totalAmount.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                }));
+                
+                // Update hidden field with raw amount
+                $('#TotalAmount').val(totalAmount.toFixed(2));
+            }
+
+            function updateContractDetails(contractId) {
+                if (!contractId) {
+                    contractDetails = null;
+                    $('#totalAmountDisplay').val('0.00');
+                    $('#TotalAmount').val('0');
+                    return;
+                }
+
+                isLoadingContract = true;
+                $.get(`/Invoice/GetContractDetails/${contractId}`)
+                    .done(function (data) {
+                        contractDetails = data;
+                        const startInput = $('#StartDate');
+                        const endInput = $('#EndDate');
+                        
+                        // Update min/max without triggering validation
+                        startInput.attr('min', data.startDate);
+                        startInput.attr('max', data.endDate);
+                        endInput.attr('min', data.startDate);
+                        endInput.attr('max', data.endDate);
+                        
+                        isLoadingContract = false;
+                        
+                        // Silently validate dates without showing alerts
+                        if (!validateDates(false)) {
+                            // If dates are invalid, set them to contract start date
+                            startInput.val(data.startDate);
+                            endInput.val(data.startDate);
+                        }
+
+                        // Update total amount after contract details are loaded
+                        updateTotalAmount();
+                    })
+                    .fail(function () {
+                        isLoadingContract = false;
+                        alert('Error loading contract details');
+                    });
+            }
+
+            function validateDates(showAlert = false) {
+                if (!contractDetails || isLoadingContract) return true;
+
+                const startDate = new Date($('#StartDate').val());
+                const endDate = new Date($('#EndDate').val());
+                const contractStart = new Date(contractDetails.startDate);
+                const contractEnd = new Date(contractDetails.endDate);
+
+                // Check if dates are within contract period
+                if (startDate < contractStart || startDate > contractEnd ||
+                    endDate < contractStart || endDate > contractEnd) {
+                    if (showAlert) {
+                        alert('Invoice dates must be within the contract period');
+                    }
+                    return false;
+                }
+
+                // Check if start date is before or equal to end date
+                if (startDate > endDate) {
+                    if (showAlert) {
+                        alert('Start date must be before or equal to end date');
+                    }
+                    return false;
+                }
+
+                return true;
+            }
+
+            $('#ContractId').change(function () {
+                const contractId = $(this).val();
+                if (contractId) {
+                    updateContractDetails(contractId);
+                } else {
+                    contractDetails = null;
+                    $('#totalAmountDisplay').val('0.00');
+                    $('#TotalAmount').val('0');
+                }
+            });
+
+            // Update total amount when days worked changes
+            $('#DaysWorked').on('input', function() {
+                updateTotalAmount();
+            });
+
+            // Validate dates only when user manually changes them
+            $('#StartDate, #EndDate').change(function() {
+                if (contractDetails && !isLoadingContract) {
+                    validateDates(true);
+                }
+            });
+
+            $('#invoiceForm').submit(function (e) {
+                if (!$('#ContractId').val()) {
+                    e.preventDefault();
+                    alert('Please select a contract');
+                    return false;
+                }
+
+                if (isLoadingContract) {
+                    e.preventDefault();
+                    alert('Please wait for contract details to load');
+                    return false;
+                }
+
+                if (!contractDetails) {
+                    e.preventDefault();
+                    alert('Contract details not loaded. Please select a contract again.');
+                    return false;
+                }
+
+                if (!validateDates(true)) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                const daysWorked = parseInt($('#DaysWorked').val());
+                if (isNaN(daysWorked) || daysWorked < 1) {
+                    e.preventDefault();
+                    alert('Days worked must be at least 1');
+                    return false;
+                }
+
+                // Update total amount one final time before submitting
+                updateTotalAmount();
+                return true;
+            });
+
+            // If a contract is already selected on page load, load its details
+            const initialContractId = $('#ContractId').val();
+            if (initialContractId) {
+                updateContractDetails(initialContractId);
+            }
+        });
+    </script>
+} 
+} 

@@ -1,0 +1,104 @@
+@model IEnumerable<InvoiceSystem.Domain.DTOs.InvoiceDto>
+@using InvoiceSystem.Domain.Enums
+
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">Welcome to Invoice System</h1>
+        <p class="lead">You are logged in as @User.Identity?.Name</p>
+
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-8">
+                    <div class="d-grid gap-3">
+                        @if (User.IsInRole("InvoiceManager"))
+                        {
+                            <a asp-controller="Invoice" asp-action="Index" class="btn btn-primary btn-lg">
+                                <i class="bi bi-list"></i> View All Invoices
+                            </a>
+                        }
+                        <a asp-controller="Invoice" asp-action="Create" class="btn btn-success btn-lg">
+                            <i class="bi bi-plus-circle"></i> Create New Invoice
+                        </a>
+                        <a asp-controller="Invoice" asp-action="MyInvoices" class="btn btn-primary btn-lg">
+                            <i class="bi bi-list"></i> View My Invoices
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Invoice Modal -->
+<div class="modal fade" id="createInvoiceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Invoice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createInvoiceForm">
+                    <div class="mb-3">
+                        <label for="employeeId" class="form-label">Employee ID</label>
+                        <input type="number" class="form-control" id="employeeId" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="daysWorked" class="form-label">Days Worked</label>
+                        <input type="number" class="form-control" id="daysWorked" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="createInvoice()">Create Invoice</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function createInvoice() {
+            const data = {
+                employeeId: parseInt(document.getElementById('employeeId').value),
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                daysWorked: parseInt(document.getElementById('daysWorked').value)
+            };
+
+            try {
+                const response = await fetch('/api/invoices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.text();
+                    alert('Error creating invoice: ' + error);
+                }
+            } catch (error) {
+                alert('Error creating invoice: ' + error);
+            }
+        }
+    </script>
+} 

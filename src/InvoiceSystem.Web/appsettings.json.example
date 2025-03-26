@@ -1,0 +1,21 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=invoice_system;Username=your_username;Password=your_password"
+  },
+  "Authentication": {
+    "Cookie": {
+      "Name": "InvoiceSystem.Auth",
+      "ExpireTimeMinutes": 480
+    }
+  },
+  "Security": {
+    "PasswordHashingIterations": 11
+  }
+} 

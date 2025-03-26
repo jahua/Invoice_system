@@ -1,0 +1,131 @@
+@model InvoiceSystem.Domain.DTOs.UpdateInvoiceDto
+
+@{
+    ViewData["Title"] = "Edit Invoice";
+}
+
+<div class="container mt-4">
+    <h2>Edit Invoice</h2>
+
+    <form asp-controller="Invoice" asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3 card p-3">
+            <h5>Employee Information</h5>
+            <p><strong>Name:</strong> @Model.EmployeeName</p>
+            <p><strong>Employee ID:</strong> @Model.EmployeeId</p>
+        </div>
+
+        <div class="mb-3 card p-3">
+            <h5>Contract Details</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <p><strong>Contract Type:</strong> @Model.ContractType</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Pay Grade:</strong> @Model.PayGrade</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Daily Rate:</strong> $@Model.DailyRate.ToString("F2")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="StartDate" class="form-label">Start Date</label>
+            <input asp-for="StartDate" class="form-control" type="date" id="startDate" />
+            <span asp-validation-for="StartDate" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="EndDate" class="form-label">End Date</label>
+            <input asp-for="EndDate" class="form-control" type="date" id="endDate" />
+            <span asp-validation-for="EndDate" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DaysWorked" class="form-label">Days Worked</label>
+            <input asp-for="DaysWorked" class="form-control" type="number" id="daysWorked" readonly />
+            <span asp-validation-for="DaysWorked" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Status" class="form-label">Status</label>
+            <select asp-for="Status" class="form-select">
+                <option value="0">Pending</option>
+                <option value="1">Approved</option>
+                <option value="2">Rejected</option>
+            </select>
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3 card p-3">
+            <h5>Total Amount</h5>
+            <p class="h3" id="totalAmount">$@Model.TotalAmount.ToString("F2")</p>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function calculateDays(startDate, endDate) {
+            if (!startDate || !endDate) return 0;
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        function updateDaysWorked() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const daysWorked = calculateDays(startDate, endDate);
+            document.getElementById('daysWorked').value = daysWorked;
+            
+            // Update total amount
+            const dailyRate = @Json.Serialize(Model.DailyRate);
+            const totalAmount = (daysWorked * dailyRate).toFixed(2);
+            document.getElementById('totalAmount').textContent = `$${totalAmount}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            // Set min/max dates
+            const today = new Date().toISOString().split('T')[0];
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            const threeMonthsAgoStr = threeMonthsAgo.toISOString().split('T')[0];
+            
+            startDateInput.min = threeMonthsAgoStr;
+            startDateInput.max = today;
+            endDateInput.max = today;
+
+            startDateInput.addEventListener('change', function() {
+                if (this.value) {
+                    endDateInput.min = this.value;
+                }
+                updateDaysWorked();
+            });
+
+            endDateInput.addEventListener('change', function() {
+                if (this.value && startDateInput.value > this.value) {
+                    this.value = startDateInput.value;
+                }
+                updateDaysWorked();
+            });
+
+            // Calculate initial days worked
+            updateDaysWorked();
+        });
+    </script>
+} 
